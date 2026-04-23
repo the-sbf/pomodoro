@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#E6E6E6" />
+<title>Locked In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Gowun+Batang:wght@400;700&family=Rethink+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* SBF primary */
+    --red: #BF1717;
+    --red-deep: #991212;
+    --red-soft: #F8DADA;
+    --grey: #E6E6E6;
+    --grey-deep: #D0D0D0;
+    --white: #FFFFFF;
+    --ink: #1A0505;         /* near-black with red warmth, never pure black */
+    --ink-soft: #4A2A2A;
+    --ink-muted: #8A6A6A;
+
+    /* SBF secondary — mode accents only */
+    --sky: #84D3F1;
+    --sky-deep: #4FBCE6;
+    --amber: #F7B41B;
+    --amber-deep: #E09E05;
+    --sage: #A8C5B0;
+    --sage-deep: #8AAF95;
+    --coral: #F56042;
+    --coral-deep: #E04626;
+
+    --eyebrow: "Bebas Neue", sans-serif;
+    --heading: "Gowun Batang", Georgia, serif;
+    --body: "Rethink Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  button { touch-action: manipulation; }
+
+  html, body {
+    font-family: var(--body);
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--ink);
+  }
+
+  /* Explainer text alignment */
+  #screen-explainer-1 h1, #screen-explainer-1 p,
+  #screen-explainer-2 h1, #screen-explainer-2 p,
+  #screen-explainer-3 h1, #screen-explainer-3 p { text-align: center; }
+
+  /* Per-mode backgrounds */
+  body[data-mode="intro"],
+  body[data-mode="explainer"],
+  body[data-mode="setup"],
+  body[data-mode="sprint"] { background: var(--grey); color: var(--ink); }
+  body[data-mode="grounding"] { background: var(--sage); color: var(--ink); }
+  body[data-mode="break"]     { background: var(--sky);   color: var(--ink); }
+  body[data-mode="reward"]    { background: var(--grey); color: var(--ink); }
+  body[data-mode="done"]      { background: var(--grey); color: var(--ink); }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand {
+    font-family: var(--eyebrow);
+    font-weight: 400;
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+
+  /* Typography */
+  h1, h2, .display {
+    font-family: var(--heading);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  h1 {
+    font-size: clamp(38px, 10vw, 48px);
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  h2 {
+    font-size: clamp(32px, 8vw, 40px);
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  p {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  p.big { font-size: 19px; color: var(--ink); }
+
+  .screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hidden { display: none !important; }
+  .spacer { flex: 1; min-height: 16px; }
+
+  /* Buttons */
+  button {
+    font: inherit;
+    font-family: var(--body);
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    border: none;
+    padding: 18px 24px;
+    border-radius: 18px;
+    font-size: 18px;
+    transition: transform 0.1s ease, background 0.15s ease, opacity 0.15s ease;
+    min-height: 58px;
+  }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Primary button — SBF red on primary screens, ink on accent screens */
+  body[data-mode="intro"] .btn-primary,
+  body[data-mode="explainer"] .btn-primary,
+  body[data-mode="setup"] .btn-primary,
+  body[data-mode="sprint"] .btn-primary { background: var(--red); color: var(--white); }
+  body[data-mode="grounding"] .btn-primary,
+  body[data-mode="break"] .btn-primary,
+  body[data-mode="reward"] .btn-primary,
+  body[data-mode="done"] .btn-primary { background: var(--ink); color: var(--white); }
+
+  /* Ghost */
+  .btn-ghost {
+    background: transparent;
+    border: 2.5px solid var(--ink);
+    color: var(--ink);
+  }
+  .btn-ghost:active { background: rgba(26,5,5,0.08); }
+  .btn-block { display: block; width: 100%; }
+
+  /* Input */
+  input[type="text"] {
+    font: inherit;
+    font-family: var(--body);
+    font-weight: 500;
+    width: 100%;
+    padding: 18px 20px;
+    border: 2.5px solid rgba(26,5,5,0.18);
+    border-radius: 16px;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 17px;
+    transition: all 0.15s;
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 4px rgba(191,23,23,0.12);
+  }
+  input[type="text"]::placeholder { color: var(--ink-muted); }
+
+  select {
+    font: inherit;
+    font-family: var(--body);
+    font-weight: 500;
+    width: 100%;
+    padding: 18px 20px;
+    border: 2.5px solid rgba(26,5,5,0.18);
+    border-radius: 16px;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 17px;
+    transition: all 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234A2A2A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 18px center;
+    cursor: pointer;
+  }
+  select:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 4px rgba(191,23,23,0.12);
+  }
+  select option[value=""] { color: var(--ink-muted); }
+
+  body[data-mode="reward"] h1,
+  body[data-mode="done"] h1 { color: var(--red); }
+
+  .label {
+    font-family: var(--eyebrow);
+    font-weight: 400;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    opacity: 0.8;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .hint {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .error-text {
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--red);
+    margin-top: 10px;
+  }
+
+  /* Sprint count */
+  .sprint-count {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .sprint-btn {
+    flex: 1;
+    background: var(--white);
+    color: var(--ink);
+    border: 2.5px solid rgba(26,5,5,0.18);
+    padding: 20px 8px;
+    font-family: var(--heading);
+    font-size: 34px;
+    font-weight: 700;
+    border-radius: 18px;
+    min-height: 90px;
+    letter-spacing: -0.02em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .sprint-btn.selected {
+    background: var(--red);
+    color: var(--white);
+    border-color: var(--red);
+  }
+  .sprint-btn .sub {
+    font-family: var(--eyebrow);
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 0.8;
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* Timer ring */
+  .timer-ring {
+    position: relative;
+    width: min(280px, 72vw);
+    aspect-ratio: 1;
+    margin: 8px auto 20px;
+  }
+  .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .timer-ring .track { fill: none; stroke-width: 6; }
+  .timer-ring .progress {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .timer-ring .pulse-ring {
+    fill: none;
+    stroke-width: 2;
+    opacity: 0.4;
+    transform-origin: center;
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(0.88); opacity: 0.25; }
+    50%      { transform: scale(1.02); opacity: 0.55; }
+  }
+
+  /* Sprint ring on grey */
+  body[data-mode="sprint"] .timer-ring .track    { stroke: rgba(26,5,5,0.12); }
+  body[data-mode="sprint"] .timer-ring .progress { stroke: var(--red); }
+  body[data-mode="sprint"] .timer-ring .pulse-ring { stroke: var(--red); }
+
+  /* Grounding on amber */
+  body[data-mode="grounding"] .timer-ring .track    { stroke: rgba(26,5,5,0.15); }
+  body[data-mode="grounding"] .timer-ring .progress { stroke: var(--ink); }
+  body[data-mode="grounding"] .timer-ring .pulse-ring { stroke: var(--ink); }
+
+  /* Break on sky */
+  body[data-mode="break"] .timer-ring .track    { stroke: rgba(26,5,5,0.15); }
+  body[data-mode="break"] .timer-ring .progress { stroke: var(--ink); }
+  body[data-mode="break"] .timer-ring .pulse-ring { stroke: var(--ink); }
+
+  .timer-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .timer-text .big {
+    font-family: var(--heading);
+    font-size: clamp(60px, 18vw, 76px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .timer-text .sub {
+    font-family: var(--eyebrow);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-top: 12px;
+    font-weight: 400;
+    opacity: 0.75;
+  }
+
+  /* Commitment banner */
+  .commitment {
+    background: var(--white);
+    border: 2px solid rgba(26,5,5,0.1);
+    border-radius: 14px;
+    padding: 14px 18px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .commitment .c-label {
+    font-family: var(--eyebrow);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 400;
+    color: var(--red);
+    margin-bottom: 4px;
+  }
+  .commitment .c-value {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  /* Break / grounding prompt */
+  .prompt {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .prompt .kind {
+    display: inline-block;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-family: var(--eyebrow);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: rgba(26,5,5,0.1);
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .prompt .title {
+    font-family: var(--heading);
+    font-size: clamp(28px, 7.5vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    color: var(--ink);
+    transition: opacity 0.35s ease;
+  }
+  .prompt .instruction {
+    font-size: 17px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    max-width: 340px;
+    margin: 0 auto;
+    transition: opacity 0.35s ease;
+  }
+  .sense-counter {
+    font-family: var(--heading);
+    font-size: clamp(72px, 20vw, 96px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 12px;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .fading { opacity: 0 !important; }
+  .sense-counter.fading { transform: scale(0.8); }
+
+  /* Progress dots */
+  .progress-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(26,5,5,0.2);
+    transition: all 0.3s ease;
+  }
+  .dot.done { background: var(--ink); }
+  .dot.active {
+    background: var(--red);
+    width: 30px;
+    border-radius: 5px;
+  }
+
+  /* Step indicator */
+  .step-indicator {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .step-dot {
+    flex: 1;
+    max-width: 50px;
+    height: 5px;
+    background: rgba(26,5,5,0.2);
+    border-radius: 3px;
+    transition: background 0.3s;
+  }
+  .step-dot.active { background: var(--red); }
+
+  /* Illustrations */
+  .illo {
+    display: block;
+    margin: 0 auto 28px;
+    width: min(240px, 62vw);
+    height: auto;
+  }
+
+  /* SBF logo block on intro */
+  .intro-logo {
+    width: 68px;
+    height: 68px;
+    margin: 8px auto 24px;
+    display: block;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .actions > button { flex: 1; }
+
+  .sprint-history {
+    background: rgba(26,5,5,0.08);
+    border-radius: 16px;
+    padding: 4px 18px;
+    margin: 14px 0 20px;
+  }
+  .sprint-line {
+    padding: 14px 0;
+    border-bottom: 2px solid rgba(26,5,5,0.08);
+    font-size: 15px;
+    color: var(--ink-soft);
+  }
+  .sprint-line:last-child { border-bottom: 0; }
+  .sprint-line strong { font-weight: 600; color: var(--ink); }
+
+  .celebrate {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .celebrate-badge {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .pill-label {
+    display: inline-block;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-family: var(--eyebrow);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--white);
+    margin-bottom: 18px;
+  }
+
+  .sprint-tips {
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 16px;
+    line-height: 1.5;
+    padding: 0 12px;
+  }
+
+  /* Intro lede callout */
+  .intro-callout {
+    font-family: var(--eyebrow);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 4px;
+  }
+  .intro-meta {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: var(--white);
+    border: 2px solid rgba(26,5,5,0.08);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .intro-meta .badge {
+    font-family: var(--heading);
+    font-weight: 700;
+    font-size: 15px;
+    background: var(--red);
+    color: var(--white);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+
+  /* Small portrait phones (iPhone SE etc.) */
+  @media (max-width: 375px), (max-height: 680px) and (orientation: portrait) {
+    .app { padding-top: calc(16px + env(safe-area-inset-top)); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+    h1 { font-size: 30px; margin-bottom: 10px; }
+    h2 { font-size: 26px; }
+    p { font-size: 15px; margin-bottom: 10px; }
+    .brand { margin-bottom: 16px; }
+    .timer-ring { width: min(220px, 58vw); margin: 4px auto 12px; }
+    .timer-text .big { font-size: 52px; }
+    .sprint-btn { min-height: 76px; font-size: 28px; }
+    .sense-counter { font-size: clamp(56px, 16vw, 72px); }
+    button { padding: 15px 20px; font-size: 16px; min-height: 52px; }
+    .illo { width: min(180px, 50vw); margin-bottom: 16px; }
+    .intro-logo { width: 56px; height: 56px; margin-bottom: 16px; }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .app { max-width: 700px; padding: 16px 24px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 24px; }
+    .timer-ring { width: min(200px, 38vh); margin: 4px auto 12px; }
+    .timer-text .big { font-size: 42px; }
+    .illo { width: min(140px, 26vh); margin: 0 auto 12px; }
+    .intro-logo { width: 50px; height: 50px; margin: 0 auto 12px; }
+    .brand { margin-bottom: 14px; }
+    .sprint-btn { min-height: 70px; font-size: 26px; padding: 12px 6px; }
+  }
+
+  @media (max-height: 700px) {
+    .timer-ring { width: min(240px, 60vw); }
+    h1 { font-size: 34px; }
+    .brand { margin-bottom: 18px; }
+  }
+
+  /* Done hero */
+  .done-hero { padding: 16px 0 4px; }
+  .done-hero-num {
+    font-family: var(--heading);
+    font-size: clamp(88px, 24vw, 120px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    color: var(--red);
+    display: block;
+  }
+  .done-hero-unit {
+    font-family: var(--eyebrow);
+    font-size: 14px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    display: block;
+    margin-top: 10px;
+  }
+  .welcome-back-label {
+    font-family: var(--eyebrow);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 4px;
+    display: block;
+  }
+</style>
+</head>
+<body data-mode="intro">
+
+<div class="app" id="app">
+  <div class="brand">Locked In</div>
+
+  <!-- INTRO -->
+  <div id="screen-intro" class="screen hidden" data-mode="intro">
+    <img class="intro-logo" src="sbf-logo.webp" alt="Students for a Better Future" />
+
+    <div class="intro-callout">For students, by SBF</div>
+    <h1>Meet one of the most effective study techniques out there.</h1>
+    <p class="big">However you like to study — in silence, flashcards, rewriting notes, mindmaps, teaching someone else — this makes whatever you already do work harder.</p>
+
+    <div class="intro-meta">
+      <div class="badge">3</div>
+      <div>Three quick screens. Then you start.</div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-primary btn-block" data-next="explainer-1">Let's go</button>
+    </div>
+  </div>
+
+  <!-- EXPLAINER 1 -->
+  <div id="screen-explainer-1" class="screen hidden" data-mode="explainer">
+    <div class="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <svg class="illo" viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="fade1" x1="0%" x2="100%">
+          <stop offset="0%" stop-color="#BF1717" />
+          <stop offset="100%" stop-color="#BF1717" stop-opacity="0.2" />
+        </linearGradient>
+      </defs>
+      <line x1="24" y1="130" x2="220" y2="130" stroke="#1A0505" stroke-opacity="0.2" stroke-width="2" />
+      <line x1="24" y1="130" x2="24" y2="30" stroke="#1A0505" stroke-opacity="0.2" stroke-width="2" />
+      <text x="22" y="148" font-family="Bebas Neue, sans-serif" font-size="12" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.55">0 MIN</text>
+      <text x="178" y="148" font-family="Bebas Neue, sans-serif" font-size="12" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.55">3 HRS</text>
+      <text x="8" y="26" font-family="Bebas Neue, sans-serif" font-size="12" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.55">FOCUS</text>
+      <path d="M 24 42 Q 60 42, 75 56 Q 110 80, 150 105 Q 185 122, 220 128"
+            fill="none" stroke="url(#fade1)" stroke-width="5" stroke-linecap="round" />
+      <circle cx="24" cy="42" r="7" fill="#BF1717" />
+      <circle cx="220" cy="128" r="5" fill="#BF1717" opacity="0.35" />
+    </svg>
+    <h1>Your brain leaks focus after 25 minutes.</h1>
+    <p class="big">This is real. Scientists call it attention fatigue — the longer you push past your focus limit, the worse your work gets.</p>
+    <p style="font-size: 15px; opacity: 0.75;">You're not being lazy. Your brain is doing what brains do.</p>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-primary btn-block" data-next="explainer-2">Next</button>
+    </div>
+  </div>
+
+  <!-- EXPLAINER 2 -->
+  <div id="screen-explainer-2" class="screen hidden" data-mode="explainer">
+    <div class="step-indicator">
+      <div class="step-dot"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <svg class="illo" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Stem / leaves -->
+      <path d="M 118 28 Q 108 18 96 22 Q 102 34 116 36 Z" fill="#F7B41B" />
+      <path d="M 122 28 Q 132 18 144 22 Q 138 34 124 36 Z" fill="#F7B41B" />
+      <rect x="117" y="30" width="6" height="14" rx="2" fill="#F7B41B" />
+      <!-- Tomato body -->
+      <ellipse cx="120" cy="112" rx="78" ry="72" fill="#BF1717" />
+      <!-- Highlight -->
+      <ellipse cx="92" cy="80" rx="18" ry="12" fill="#FFFFFF" opacity="0.2" transform="rotate(-25 92 80)" />
+      <!-- Dial face -->
+      <circle cx="120" cy="112" r="48" fill="#FFFFFF" />
+      <circle cx="120" cy="112" r="48" fill="none" stroke="#1A0505" stroke-width="3" />
+      <g stroke="#1A0505" stroke-width="2" stroke-linecap="round">
+        <line x1="120" y1="68" x2="120" y2="74" />
+        <line x1="158" y1="90" x2="152" y2="94" />
+        <line x1="158" y1="134" x2="152" y2="130" />
+        <line x1="120" y1="156" x2="120" y2="150" />
+        <line x1="82" y1="134" x2="88" y2="130" />
+        <line x1="82" y1="90" x2="88" y2="94" />
+      </g>
+      <text x="120" y="84" text-anchor="middle" font-family="Gowun Batang, serif" font-size="12" font-weight="700" fill="#1A0505">0</text>
+      <text x="152" y="116" text-anchor="middle" font-family="Gowun Batang, serif" font-size="12" font-weight="700" fill="#1A0505">15</text>
+      <text x="120" y="148" text-anchor="middle" font-family="Gowun Batang, serif" font-size="12" font-weight="700" fill="#1A0505">30</text>
+      <text x="88" y="116" text-anchor="middle" font-family="Gowun Batang, serif" font-size="12" font-weight="700" fill="#1A0505">45</text>
+      <!-- Minute hand pointing at 25 -->
+      <line x1="120" y1="112" x2="148" y2="128" stroke="#1A0505" stroke-width="3.5" stroke-linecap="round" />
+      <circle cx="120" cy="112" r="5" fill="#1A0505" />
+      <!-- 25 MIN badge -->
+      <rect x="88" y="172" width="64" height="22" rx="11" fill="#1A0505" />
+      <text x="120" y="187" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="13" font-weight="400" letter-spacing="1.5" fill="#FFFFFF">25 MIN</text>
+    </svg>
+    <h1>This is the Pomodoro Technique.</h1>
+    <p class="big">Invented in the 1980s by a university student who was failing his exams. He used a tomato-shaped kitchen timer — "pomodoro" is Italian for tomato.</p>
+    <p style="font-size: 15px; opacity: 0.75;">25 min focus. 5 min real break. Repeat. He went from failing to top of his class.</p>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-ghost" data-back="explainer-1">Back</button>
+      <button class="btn-primary" data-next="explainer-3">Next</button>
+    </div>
+  </div>
+
+  <!-- EXPLAINER 3 -->
+  <div id="screen-explainer-3" class="screen hidden" data-mode="explainer">
+    <div class="step-indicator">
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <svg class="illo" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="120" cy="100" r="60" fill="none" stroke="#1A0505" stroke-opacity="0.22" stroke-width="2" stroke-dasharray="4 6" />
+      <!-- Top focus -->
+      <text x="120" y="16" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="11" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.65">FOCUS</text>
+      <circle cx="120" cy="40" r="18" fill="#BF1717" />
+      <text x="120" y="45" text-anchor="middle" font-family="Gowun Batang, serif" font-size="13" font-weight="700" fill="#FFFFFF">25</text>
+      <!-- Right break -->
+      <circle cx="180" cy="100" r="12" fill="#84D3F1" />
+      <text x="198" y="104" font-family="Bebas Neue, sans-serif" font-size="11" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.65">BREAK</text>
+      <!-- Bottom focus -->
+      <circle cx="120" cy="160" r="18" fill="#BF1717" />
+      <text x="120" y="165" text-anchor="middle" font-family="Gowun Batang, serif" font-size="13" font-weight="700" fill="#FFFFFF">25</text>
+      <text x="120" y="194" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="11" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.65">FOCUS</text>
+      <!-- Left break -->
+      <circle cx="60" cy="100" r="12" fill="#84D3F1" />
+      <text x="8" y="104" font-family="Bebas Neue, sans-serif" font-size="11" font-weight="400" letter-spacing="1" fill="#1A0505" opacity="0.65">BREAK</text>
+      <!-- Centre reward -->
+      <circle cx="120" cy="100" r="26" fill="#F7B41B" />
+      <text x="120" y="104" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="12" font-weight="400" letter-spacing="1.5" fill="#1A0505">REWARD</text>
+    </svg>
+    <h1>Why it works.</h1>
+    <p class="big">Your brain can't concentrate hard for hours. But it can concentrate hard for 25 minutes. The breaks aren't lost time — they're what lets your focus reset.</p>
+    <p style="font-size: 15px; opacity: 0.75;">Four sprints can do what three hours of grinding can't.</p>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-ghost" data-back="explainer-2">Back</button>
+      <button class="btn-primary" data-next="name">Let's go</button>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="screen-setup" class="screen hidden" data-mode="setup">
+    <span class="welcome-back-label hidden" id="welcome-back-label"></span>
+    <h1 id="setup-heading">Okay. What are we doing?</h1>
+    <p class="big" style="margin-bottom: 28px;">Two things and we're off.</p>
+
+    <label class="label" for="study-target">What are you working on?</label>
+    <input type="text" id="study-target" placeholder="Maths Ch 5 — quadratic equations" maxlength="80" autocomplete="off" />
+    <div class="hint">Be specific. "Study" won't cut it — your brain needs a real target.</div>
+    <div class="error-text hidden" id="target-error">Too vague. What subject, what topic?</div>
+
+    <div style="height: 28px;"></div>
+
+    <label class="label">How many sprints?</label>
+    <div class="sprint-count">
+      <button class="sprint-btn" data-count="2">2<span class="sub">~55 min</span></button>
+      <button class="sprint-btn" data-count="3">3<span class="sub">~85 min</span></button>
+      <button class="sprint-btn" data-count="4">4<span class="sub">~115 min</span></button>
+    </div>
+    <div class="hint">Go lower if you're tired. Higher if you're fresh.</div>
+
+    <div class="spacer"></div>
+    <div class="actions">
+      <button id="start-btn" class="btn-primary btn-block" disabled>Start</button>
+    </div>
+  </div>
+
+  <!-- GROUNDING -->
+  <div id="screen-grounding" class="screen hidden" data-mode="grounding">
+    <div class="prompt">
+      <div class="kind">Arrival · 45 sec</div>
+      <div class="sense-counter" id="sense-counter">5</div>
+      <div class="title" id="grounding-title">Look for 5 things you can see.</div>
+      <div class="instruction" id="grounding-instruction">Take them in. No hurry.</div>
+    </div>
+    <div class="timer-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="pulse-ring" cx="60" cy="60" r="54" />
+        <circle class="track" cx="60" cy="60" r="54" />
+        <circle class="progress" id="grounding-progress" cx="60" cy="60" r="54"
+          stroke-dasharray="339.29" stroke-dashoffset="0" />
+      </svg>
+      <div class="timer-text">
+        <div class="big" id="grounding-timer">0:45</div>
+        <div class="sub">Arriving</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-ghost btn-block" id="skip-grounding">I'm ready</button>
+    </div>
+  </div>
+
+  <!-- SPRINT -->
+  <div id="screen-sprint" class="screen hidden" data-mode="sprint">
+    <div class="progress-dots" id="sprint-dots"></div>
+    <div class="commitment">
+      <div class="c-label">Focused on</div>
+      <div class="c-value" id="sprint-target">—</div>
+    </div>
+    <div class="timer-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="pulse-ring" cx="60" cy="60" r="54" />
+        <circle class="track" cx="60" cy="60" r="54" />
+        <circle class="progress" id="sprint-progress" cx="60" cy="60" r="54"
+          stroke-dasharray="339.29" stroke-dashoffset="0" />
+      </svg>
+      <div class="timer-text">
+        <div class="big" id="sprint-timer">25:00</div>
+        <div class="sub" id="sprint-label">Sprint 1</div>
+      </div>
+    </div>
+    <div class="sprint-tips">Notifications off. Focus mode on.</div>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-ghost" id="pause-btn">Pause</button>
+      <button class="btn-ghost" id="end-sprint-early">End early</button>
+    </div>
+  </div>
+
+  <!-- BREAK -->
+  <div id="screen-break" class="screen hidden" data-mode="break">
+    <div class="prompt">
+      <div class="kind">Break · 5 min</div>
+      <div class="title" id="break-title">—</div>
+      <div class="instruction" id="break-instruction">—</div>
+    </div>
+    <div class="timer-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="pulse-ring" cx="60" cy="60" r="54" />
+        <circle class="track" cx="60" cy="60" r="54" />
+        <circle class="progress" id="break-progress" cx="60" cy="60" r="54"
+          stroke-dasharray="339.29" stroke-dashoffset="0" />
+      </svg>
+      <div class="timer-text">
+        <div class="big" id="break-timer">5:00</div>
+        <div class="sub">Recovering</div>
+      </div>
+    </div>
+    <div class="sprint-tips">No screens. That's the whole point.</div>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-ghost btn-block" id="skip-break">Back to it</button>
+    </div>
+  </div>
+
+  <!-- REWARD -->
+  <div id="screen-reward" class="screen hidden" data-mode="reward">
+    <h1 style="text-align: center;">Nailed it.</h1>
+    <p class="big" style="text-align: center; margin-bottom: 8px;">You put in the work.</p>
+
+    <div class="sprint-history" id="reward-history"></div>
+
+    <label class="label" for="reward-text">What's your reward?</label>
+    <input type="text" id="reward-text" placeholder="20 min outside, one episode, iced coffee…" maxlength="80" autocomplete="off" />
+    <div class="hint">Pick something specific. Then actually take it.</div>
+
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-primary btn-block" id="claim-reward">Claim it</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div id="screen-done" class="screen hidden" data-mode="done">
+    <div class="done-hero">
+      <span class="done-hero-num" id="done-total-min">—</span>
+      <span class="done-hero-unit">min focused</span>
+    </div>
+    <h1 id="done-heading">Well done.</h1>
+    <p class="big" id="done-subject-line">—</p>
+    <p>Your reward: <strong id="done-reward">—</strong></p>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-ghost btn-block" id="new-session">Start over</button>
+    </div>
+  </div>
+
+  <!-- NAME CAPTURE (first time only) -->
+  <div id="screen-name" class="screen hidden" data-mode="setup">
+    <h1>One quick thing.</h1>
+    <p class="big" style="margin-bottom: 28px;">Who are we locking in with?</p>
+    <label class="label" for="user-firstname">First name</label>
+    <input type="text" id="user-firstname" placeholder="Leah" maxlength="40" autocomplete="given-name" />
+    <div style="height: 16px;"></div>
+    <label class="label" for="user-surname">Surname</label>
+    <input type="text" id="user-surname" placeholder="Nasson" maxlength="40" autocomplete="family-name" />
+    <div style="height: 16px;"></div>
+    <label class="label" for="user-grade">Grade</label>
+    <select id="user-grade">
+      <option value="">— Select grade —</option>
+      <option value="8">Grade 8</option>
+      <option value="9">Grade 9</option>
+      <option value="10">Grade 10</option>
+      <option value="11">Grade 11</option>
+      <option value="12">Grade 12</option>
+    </select>
+    <div class="spacer"></div>
+    <div class="actions">
+      <button class="btn-primary btn-block" id="name-btn" disabled>Let's go</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Supabase config ──────────────────────────────────────────────────────
+  const SUPABASE_URL  = 'https://zhnelilqzfsdyfafvbov.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpobmVsaWxxemZzZHlmYWZ2Ym92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDY5NjAsImV4cCI6MjA5MjUyMjk2MH0.Kq1OINkfr6Lx8upihMxTsfVKbfQtDexL0IN9gTf-hcM';
+
+  async function saveSessionToSupabase(payload) {
+    if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
+    try {
+      await fetch(SUPABASE_URL + '/rest/v1/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON,
+          'Authorization': 'Bearer ' + SUPABASE_ANON,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.warn('Supabase save failed:', e);
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
+  const STATE = {
+    hasSeenIntro: false,
+    currentScreen: null,
+    user: { firstname: '', surname: '', grade: '' },
+    session: {
+      studyTarget: '',
+      sprintGoal: 3,
+      sprintsCompleted: 0,
+      sprints: [],
+      reward: '',
+      startedAt: null
+    },
+    timer: { mode: null, remaining: 0, duration: 0, intervalId: null, paused: false },
+    lastBreakIndex: -1
+  };
+
+  const Storage = {
+    async get(key) {
+      try { return JSON.parse(sessionStorage.getItem('kula_lockedin_' + key)); }
+      catch { return null; }
+    },
+    async set(key, value) {
+      try { sessionStorage.setItem('kula_lockedin_' + key, JSON.stringify(value)); }
+      catch {}
+    }
+  };
+
+  const BREAK_TECHNIQUES = [
+    { name: 'Star breath', instruction: 'Trace a star in the air with your finger. Breathe in going up each point. Out coming down. Slow.' },
+    { name: 'Box breath', instruction: 'In for 4. Hold for 4. Out for 4. Hold for 4. Do it three times.' },
+    { name: '5-4-3-2-1', instruction: 'Name 5 things you see. 4 you can touch. 3 you hear. 2 you smell. 1 you taste.' },
+    { name: 'Look up', instruction: 'Find a window. Look out. Find something green. Stare at it.' },
+    { name: 'Shake it off', instruction: 'Stand up. Shake your hands and legs out. Roll your shoulders back three times.' },
+    { name: 'Water reset', instruction: 'Splash cold water on your wrists or face. Drink a glass. Notice it.' },
+    { name: 'Long exhale', instruction: 'Breathe in for 4. Out slowly for 8. The long exhale tells your body to chill.' },
+    { name: 'Stand tall', instruction: 'Stand up straight. Hands on your ribs. Feel them push out as you breathe in deep.' },
+    { name: 'Quick snack', instruction: 'Grab something small — a handful of nuts, fruit, or a biscuit. Eat it slowly. Your brain runs on fuel.' }
+  ];
+
+  const GROUNDING_STEPS = [
+    { count: 5, title: 'Look for 5 things you can see.',    instruction: 'Take them in. No hurry.' },
+    { count: 4, title: '4 things you can touch.',           instruction: 'Desk, floor, fabric, skin.' },
+    { count: 3, title: '3 sounds you can hear.',            instruction: 'Near, far, your own breath.' },
+    { count: 2, title: '2 things you can smell.',           instruction: 'Or taste, if nothing\u2019s there.' },
+    { count: 1, title: '1 deep breath.',                    instruction: 'You\u2019re here. Let\u2019s go.' }
+  ];
+  const GROUNDING_STEP_SECONDS = 9;
+  const GROUNDING_TOTAL_SECONDS = GROUNDING_STEPS.length * GROUNDING_STEP_SECONDS;
+
+  const SCREENS = ['intro', 'explainer-1', 'explainer-2', 'explainer-3', 'setup', 'grounding', 'sprint', 'break', 'reward', 'done', 'name'];
+
+  function showScreen(name) {
+    SCREENS.forEach(s => {
+      const el = document.getElementById('screen-' + s);
+      if (el) el.classList.add('hidden');
+    });
+    const target = document.getElementById('screen-' + name);
+    if (target) {
+      target.classList.remove('hidden');
+      const mode = target.getAttribute('data-mode') || 'intro';
+      document.body.setAttribute('data-mode', mode);
+    }
+    STATE.currentScreen = name;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  const RING_CIRCUMFERENCE = 339.29;
+
+  function updateRing(progressEl, remaining, duration) {
+    const pct = remaining / duration;
+    progressEl.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - pct);
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  function startTimer({ duration, mode, onTick, onComplete }) {
+    clearTimer();
+    STATE.timer.mode = mode;
+    STATE.timer.duration = duration;
+    STATE.timer.remaining = duration;
+    STATE.timer.paused = false;
+    onTick(STATE.timer.remaining, STATE.timer.duration);
+    STATE.timer.intervalId = setInterval(() => {
+      if (STATE.timer.paused) return;
+      STATE.timer.remaining -= 1;
+      onTick(STATE.timer.remaining, STATE.timer.duration);
+      if (STATE.timer.remaining <= 0) {
+        clearTimer();
+        onComplete();
+      }
+    }, 1000);
+  }
+
+  function clearTimer() {
+    if (STATE.timer.intervalId) {
+      clearInterval(STATE.timer.intervalId);
+      STATE.timer.intervalId = null;
+    }
+  }
+
+  function startSession() {
+    STATE.session.sprintsCompleted = 0;
+    STATE.session.sprints = [];
+    STATE.session.startedAt = Date.now();
+    runGrounding();
+  }
+
+  function runGrounding() {
+    showScreen('grounding');
+    const timerEl     = document.getElementById('grounding-timer');
+    const progressEl  = document.getElementById('grounding-progress');
+    const titleEl     = document.getElementById('grounding-title');
+    const instructEl  = document.getElementById('grounding-instruction');
+    const counterEl   = document.getElementById('sense-counter');
+
+    let currentStepIdx = 0;
+    applyStep(currentStepIdx, false);
+
+    function applyStep(idx, withFade) {
+      const step = GROUNDING_STEPS[idx];
+      if (!step) return;
+      const update = () => {
+        counterEl.textContent  = step.count;
+        titleEl.textContent    = step.title;
+        instructEl.textContent = step.instruction;
+      };
+      if (!withFade) { update(); return; }
+      counterEl.classList.add('fading');
+      titleEl.classList.add('fading');
+      instructEl.classList.add('fading');
+      setTimeout(() => {
+        update();
+        counterEl.classList.remove('fading');
+        titleEl.classList.remove('fading');
+        instructEl.classList.remove('fading');
+      }, 280);
+    }
+
+    startTimer({
+      duration: GROUNDING_TOTAL_SECONDS,
+      mode: 'grounding',
+      onTick: (rem, dur) => {
+        timerEl.textContent = formatTime(rem);
+        updateRing(progressEl, rem, dur);
+        const elapsed = dur - rem;
+        const nextIdx = Math.min(
+          GROUNDING_STEPS.length - 1,
+          Math.floor(elapsed / GROUNDING_STEP_SECONDS)
+        );
+        if (nextIdx !== currentStepIdx) {
+          currentStepIdx = nextIdx;
+          applyStep(currentStepIdx, true);
+        }
+      },
+      onComplete: () => runSprint()
+    });
+  }
+
+  function runSprint() {
+    showScreen('sprint');
+    const sprintNum = STATE.session.sprintsCompleted + 1;
+    document.getElementById('sprint-target').textContent = STATE.session.studyTarget;
+    document.getElementById('sprint-label').textContent = 'Sprint ' + sprintNum + ' of ' + STATE.session.sprintGoal;
+    renderProgressDots();
+    const timerEl = document.getElementById('sprint-timer');
+    const progressEl = document.getElementById('sprint-progress');
+    startTimer({
+      duration: 25 * 60,
+      mode: 'sprint',
+      onTick: (rem, dur) => {
+        timerEl.textContent = formatTime(rem);
+        updateRing(progressEl, rem, dur);
+      },
+      onComplete: () => completeSprint()
+    });
+  }
+
+  function completeSprint() {
+    STATE.session.sprintsCompleted += 1;
+    STATE.session.sprints.push({
+      target: STATE.session.studyTarget,
+      completedAt: Date.now()
+    });
+    if (STATE.session.sprintsCompleted >= STATE.session.sprintGoal) {
+      runReward();
+    } else {
+      runBreak();
+    }
+  }
+
+  function pickBreakTechnique() {
+    let idx;
+    do {
+      idx = Math.floor(Math.random() * BREAK_TECHNIQUES.length);
+    } while (idx === STATE.lastBreakIndex && BREAK_TECHNIQUES.length > 1);
+    STATE.lastBreakIndex = idx;
+    return BREAK_TECHNIQUES[idx];
+  }
+
+  function runBreak() {
+    showScreen('break');
+    const t = pickBreakTechnique();
+    document.getElementById('break-title').textContent = t.name;
+    document.getElementById('break-instruction').textContent = t.instruction;
+    const timerEl = document.getElementById('break-timer');
+    const progressEl = document.getElementById('break-progress');
+    startTimer({
+      duration: 5 * 60,
+      mode: 'break',
+      onTick: (rem, dur) => {
+        timerEl.textContent = formatTime(rem);
+        updateRing(progressEl, rem, dur);
+      },
+      onComplete: () => runSprint()
+    });
+  }
+
+  function runReward() {
+    showScreen('reward');
+    const historyEl = document.getElementById('reward-history');
+    historyEl.innerHTML =
+      '<div class="sprint-line"><strong>' + escapeHtml(STATE.session.studyTarget) + '</strong></div>' +
+      STATE.session.sprints.map((s, i) =>
+        '<div class="sprint-line">Sprint ' + (i + 1) + ' ✓</div>'
+      ).join('');
+    document.getElementById('reward-text').value = '';
+  }
+
+  function finishSession(reward) {
+    STATE.session.reward = reward;
+    const totalMin = STATE.session.sprintsCompleted * 25;
+    const name = STATE.user.firstname;
+
+    // Persist last session for return-visit pre-fill
+    Storage.set('lastSession', {
+      studyTarget: STATE.session.studyTarget,
+      sprintGoal: STATE.session.sprintGoal
+    });
+
+    saveSessionToSupabase({
+      firstname: STATE.user.firstname,
+      surname: STATE.user.surname,
+      grade: STATE.user.grade,
+      study_target: STATE.session.studyTarget,
+      sprints_completed: STATE.session.sprintsCompleted,
+      sprint_goal: STATE.session.sprintGoal,
+      total_min: totalMin,
+      reward,
+      session_started_at: new Date(STATE.session.startedAt).toISOString(),
+      session_ended_at: new Date().toISOString()
+    });
+
+    showScreen('done');
+    document.getElementById('done-total-min').textContent = totalMin;
+    document.getElementById('done-heading').textContent = name ? 'Well done, ' + name + '.' : 'Well done.';
+    document.getElementById('done-subject-line').textContent =
+      STATE.session.studyTarget + ' · ' + STATE.session.sprintsCompleted + ' sprint' + (STATE.session.sprintsCompleted !== 1 ? 's' : '');
+    document.getElementById('done-reward').textContent = reward;
+  }
+
+  function renderProgressDots() {
+    const dotsEl = document.getElementById('sprint-dots');
+    let html = '';
+    for (let i = 0; i < STATE.session.sprintGoal; i++) {
+      let cls = 'dot';
+      if (i < STATE.session.sprintsCompleted) cls += ' done';
+      else if (i === STATE.session.sprintsCompleted) cls += ' active';
+      html += '<div class="' + cls + '"></div>';
+    }
+    dotsEl.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // Bindings
+  document.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = btn.getAttribute('data-next');
+      if (next === 'setup') {
+        STATE.hasSeenIntro = true;
+        Storage.set('hasSeenIntro', true);
+      }
+      showScreen(next);
+    });
+  });
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => showScreen(btn.getAttribute('data-back')));
+  });
+
+  const targetInput = document.getElementById('study-target');
+  const startBtn = document.getElementById('start-btn');
+  const targetError = document.getElementById('target-error');
+  let selectedCount = null;
+
+  function validateSetup() {
+    const target = targetInput.value.trim();
+    startBtn.disabled = !(target.length >= 4 && selectedCount !== null);
+  }
+
+  targetInput.addEventListener('input', () => {
+    targetError.classList.add('hidden');
+    validateSetup();
+  });
+
+  document.querySelectorAll('.sprint-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sprint-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedCount = parseInt(btn.getAttribute('data-count'), 10);
+      validateSetup();
+    });
+  });
+
+  startBtn.addEventListener('click', () => {
+    const target = targetInput.value.trim();
+    const generic = ['study', 'studying', 'homework', 'work', 'revise', 'revising', 'revision', 'learn', 'learning', 'school'];
+    if (target.length < 4 || generic.includes(target.toLowerCase())) {
+      targetError.classList.remove('hidden');
+      return;
+    }
+    STATE.session.studyTarget = target;
+    STATE.session.sprintGoal = selectedCount;
+    startSession();
+  });
+
+  document.getElementById('skip-grounding').addEventListener('click', () => {
+    clearTimer();
+    runSprint();
+  });
+
+  const pauseBtn = document.getElementById('pause-btn');
+  pauseBtn.addEventListener('click', () => {
+    STATE.timer.paused = !STATE.timer.paused;
+    pauseBtn.textContent = STATE.timer.paused ? 'Resume' : 'Pause';
+  });
+
+  document.getElementById('end-sprint-early').addEventListener('click', () => {
+    if (confirm('End this sprint early? It still counts.')) {
+      clearTimer();
+      completeSprint();
+    }
+  });
+
+  document.getElementById('skip-break').addEventListener('click', () => {
+    clearTimer();
+    runSprint();
+  });
+
+  document.getElementById('claim-reward').addEventListener('click', () => {
+    const reward = document.getElementById('reward-text').value.trim();
+    if (!reward) {
+      alert('Name your reward. Make it real.');
+      return;
+    }
+    finishSession(reward);
+  });
+
+  document.getElementById('new-session').addEventListener('click', () => {
+    // Keep last target pre-filled so they can reuse or change it
+    selectedCount = null;
+    document.querySelectorAll('.sprint-btn').forEach(b => b.classList.remove('selected'));
+    validateSetup();
+    showScreen('setup');
+  });
+
+  // Name screen
+  const firstnameInput = document.getElementById('user-firstname');
+  const surnameInput = document.getElementById('user-surname');
+  const gradeSelect = document.getElementById('user-grade');
+  const nameBtn = document.getElementById('name-btn');
+
+  function validateName() {
+    nameBtn.disabled = !(
+      firstnameInput.value.trim().length >= 1 &&
+      surnameInput.value.trim().length >= 1 &&
+      gradeSelect.value !== ''
+    );
+  }
+  firstnameInput.addEventListener('input', validateName);
+  surnameInput.addEventListener('input', validateName);
+  gradeSelect.addEventListener('change', validateName);
+
+  nameBtn.addEventListener('click', () => {
+    STATE.user.firstname = firstnameInput.value.trim();
+    STATE.user.surname = surnameInput.value.trim();
+    STATE.user.grade = gradeSelect.value;
+    Storage.set('user', STATE.user);
+    Storage.set('hasSeenIntro', true);
+    STATE.hasSeenIntro = true;
+    showSetupWithWelcome();
+  });
+
+  function showSetupWithWelcome(prefill) {
+    const label = document.getElementById('welcome-back-label');
+    const heading = document.getElementById('setup-heading');
+    if (STATE.user.firstname) {
+      label.textContent = 'Welcome back, ' + STATE.user.firstname + '.';
+      label.classList.remove('hidden');
+      heading.textContent = 'What are we doing today?';
+    }
+    if (prefill) targetInput.value = prefill;
+    validateSetup();
+    showScreen('setup');
+  }
+
+  async function boot() {
+    const seen = await Storage.get('hasSeenIntro');
+    const user = await Storage.get('user');
+    const lastSession = await Storage.get('lastSession');
+    STATE.hasSeenIntro = !!seen;
+    if (user) {
+      STATE.user = user;
+      showSetupWithWelcome(lastSession ? lastSession.studyTarget : '');
+    } else {
+      showScreen(STATE.hasSeenIntro ? 'name' : 'intro');
+    }
+  }
+  boot();
+</script>
+
+</body>
+</html>
